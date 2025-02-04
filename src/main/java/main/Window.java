@@ -2,6 +2,8 @@ package main;
 
 import camera.Camera;
 import graphics.Renderer;
+
+import gui.Menu;
 import input.InputHandler;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
@@ -21,6 +23,7 @@ public class Window {
     private Renderer renderer;
 
 
+    private Menu menu;
 
     public Window(int width, int height, String title) {
         this.width = width;
@@ -51,8 +54,10 @@ public class Window {
         GL.createCapabilities();
 
 
+
         camera = new Camera(0, 0, 2);  // ✅ Hráč začíná nad podlahou
-        inputHandler = new InputHandler(window, camera);
+        menu = new Menu(window, camera);
+        inputHandler = new InputHandler(window, camera, menu);
         renderer = new Renderer();
 
 
@@ -94,9 +99,20 @@ public class Window {
                 GL11.glMultMatrixf(fb);
             }
 
+            // 1️⃣ Vykreslení herní scény, ale jen pokud menu není aktivní
+            if (!menu.isActive()) {
+                renderer.render();
+            }
+
+            // 2️⃣ Pokud je menu aktivní, vykresli ho přes hru
+            if (menu.isActive()) {
+                menu.render();
+            }
+
+            menu.render();
+
             inputHandler.processInput();
             camera.update();  // ✅ Aktualizace gravitace a skákání
-            renderer.render();
 
             // FPS Counter do názvu okna
             long currentTime = System.nanoTime();
