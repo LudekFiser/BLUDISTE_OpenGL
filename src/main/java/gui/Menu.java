@@ -118,8 +118,8 @@ public class Menu {
         float scaleX = windowWidth[0] / 800f;
         float scaleY = windowHeight[0] / 600f;
 
-        drawButton(300 * scaleX, 250 * scaleY, 500 * scaleX, 300 * scaleY, "Continue", 1.0f, 1.0f, 0.0f);
-        drawButton(300 * scaleX, 350 * scaleY, 500 * scaleX, 400 * scaleY, "Restart", 1.0f, 0.0f, 0.0f);
+        drawButton(300 * scaleX, 250 * scaleY, 500 * scaleX, 300 * scaleY, "Continue", 0.0f, 1.0f, 0.0f);
+        drawButton(300 * scaleX, 350 * scaleY, 500 * scaleX, 400 * scaleY, "Restart", 1.0f, 1.0f, 0.0f);
         drawButton(300 * scaleX, 450 * scaleY, 500 * scaleX, 500 * scaleY, "Quit game", 1.0f, 0.0f, 0.0f);
 
         glMatrixMode(GL_PROJECTION);
@@ -131,21 +131,21 @@ public class Menu {
 
 
     private void drawButton(float x1, float y1, float x2, float y2, String text, float r, float g, float b) {
-        glColor3f(0.3f, 0.3f, 0.3f);
+        /*glColor3f(0.3f, 0.3f, 0.3f);
         glBegin(GL_QUADS);
         glVertex2f(x1, y1);
         glVertex2f(x2, y1);
         glVertex2f(x2, y2);
         glVertex2f(x1, y2);
-        glEnd();
+        glEnd();*/
 
-        glColor3f(1.0f, 1.0f, 1.0f);
+        /*glColor3f(1.0f, 1.0f, 1.0f);
         glBegin(GL_LINE_LOOP);
         glVertex2f(x1, y1);
         glVertex2f(x2, y1);
         glVertex2f(x2, y2);
         glVertex2f(x1, y2);
-        glEnd();
+        glEnd();*/
 
         textRenderer.renderText(text, x1 + (x2 - x1) / 2 - text.length() * 6, y1 + (y2 - y1) / 2 + 5, r, g, b);
     }

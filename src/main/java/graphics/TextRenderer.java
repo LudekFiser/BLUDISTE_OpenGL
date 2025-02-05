@@ -54,7 +54,7 @@ public class TextRenderer {
         }
 
         ByteBuffer bitmap = BufferUtils.createByteBuffer(FONT_BITMAP_WIDTH * FONT_BITMAP_HEIGHT);
-        STBTruetype.stbtt_BakeFontBitmap(fontBuffer, 24, bitmap, FONT_BITMAP_WIDTH, FONT_BITMAP_HEIGHT, FIRST_CHAR, charData);
+        STBTruetype.stbtt_BakeFontBitmap(fontBuffer, 48, bitmap, FONT_BITMAP_WIDTH, FONT_BITMAP_HEIGHT, FIRST_CHAR, charData);
 
         textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
