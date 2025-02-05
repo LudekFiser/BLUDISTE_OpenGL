@@ -6,6 +6,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import transforms.Vec3D;
 
@@ -282,5 +283,30 @@ public class Renderer {
         drawTriangle(v1, v2, v3);
         drawTriangle(v1, v3, v4);
     }
+
+    public void updateViewport(int newWidth, int newHeight) {
+        GL11.glViewport(0, 0, newWidth, newHeight);
+
+        // ✅ Aktualizace projekční matice při změně velikosti
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glLoadIdentity();
+
+        float aspectRatio = (float) newWidth / newHeight;
+        Matrix4f projectionMatrix = new Matrix4f().perspective(
+                (float) Math.toRadians(70.0f),
+                aspectRatio,
+                0.1f,
+                100.0f
+        );
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer fb = stack.mallocFloat(16);
+            projectionMatrix.get(fb);
+            GL11.glLoadMatrixf(fb);
+        }
+
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+    }
+
 
 }

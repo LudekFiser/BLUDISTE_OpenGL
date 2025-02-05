@@ -74,7 +74,7 @@ public class Menu {
         return isActive;
     }
 
-    public void render() {
+    /*public void render() {
         if (!isActive) return;
 
         // ✅ DEAKTIVACE SHADERU (pouze fixní vykreslování)
@@ -96,7 +96,39 @@ public class Menu {
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glEnable(GL_DEPTH_TEST);
+    }*/
+    public void render() {
+        if (!isActive) return;
+
+        // ✅ Získání aktuální velikosti okna
+        int[] windowWidth = new int[1];
+        int[] windowHeight = new int[1];
+        GLFW.glfwGetWindowSize(window, windowWidth, windowHeight);
+
+        // ✅ Přizpůsobení projekce aktuální velikosti okna
+        glDisable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, windowWidth[0], windowHeight[0], 0, -1, 1); // 🔥 Nové rozměry okna
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // ✅ Přepočet souřadnic tlačítek podle velikosti okna
+        float scaleX = windowWidth[0] / 800f;
+        float scaleY = windowHeight[0] / 600f;
+
+        drawButton(300 * scaleX, 250 * scaleY, 500 * scaleX, 300 * scaleY, "Continue", 1.0f, 1.0f, 0.0f);
+        drawButton(300 * scaleX, 350 * scaleY, 500 * scaleX, 400 * scaleY, "Restart", 1.0f, 0.0f, 0.0f);
+        drawButton(300 * scaleX, 450 * scaleY, 500 * scaleX, 500 * scaleY, "Quit game", 1.0f, 0.0f, 0.0f);
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
     }
+
+
 
     private void drawButton(float x1, float y1, float x2, float y2, String text, float r, float g, float b) {
         glColor3f(0.3f, 0.3f, 0.3f);
@@ -118,7 +150,31 @@ public class Menu {
         textRenderer.renderText(text, x1 + (x2 - x1) / 2 - text.length() * 6, y1 + (y2 - y1) / 2 + 5, r, g, b);
     }
 
+    /*public void handleClick(double x, double y) {
+        if (isInsideButton(x, y, 300, 250, 500, 300)) {
+            System.out.println("Pokračovat stisknuto");
+            toggle();
+        } else if (isInsideButton(x, y, 300, 450, 500, 500)) {
+            System.out.println("Ukončit hru stisknuto");
+            GLFW.glfwSetWindowShouldClose(window, true);
+        } else if (isInsideButton(x, y, 300, 350, 500, 400)) {
+            gameWindow.restartGame();
+        }
+    }*/
     public void handleClick(double x, double y) {
+        // ✅ Přepočet kliknutí na aktuální velikost okna
+        int[] windowWidth = new int[1];
+        int[] windowHeight = new int[1];
+        GLFW.glfwGetWindowSize(window, windowWidth, windowHeight);
+
+        float scaleX = 800f / windowWidth[0];
+        float scaleY = 600f / windowHeight[0];
+
+        x *= scaleX;
+        y *= scaleY;
+
+        System.out.println("Kliknutí na: " + x + ", " + y);
+
         if (isInsideButton(x, y, 300, 250, 500, 300)) {
             System.out.println("Pokračovat stisknuto");
             toggle();
@@ -129,6 +185,7 @@ public class Menu {
             gameWindow.restartGame();
         }
     }
+
 
     private boolean isInsideButton(double x, double y, float x1, float y1, float x2, float y2) {
         return x >= x1 && x <= x2 && y >= y1 && y <= y2;

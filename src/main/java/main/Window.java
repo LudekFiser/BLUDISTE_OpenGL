@@ -54,10 +54,19 @@ public class Window {
             throw new IllegalStateException("Nepodařilo se inicializovat GLFW!");
         }
 
+        // ✅ Povolení změny velikosti okna
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
+
         window = GLFW.glfwCreateWindow(width, height, title, 0, 0);
         if (window == 0) {
             throw new RuntimeException("Nepodařilo se vytvořit okno!");
         }
+        // ✅ Callback pro změnu velikosti okna
+        GLFW.glfwSetWindowSizeCallback(window, (win, newWidth, newHeight) -> {
+            this.width = newWidth;
+            this.height = newHeight;
+            renderer.updateViewport(newWidth, newHeight);
+        });
 
         GLFW.glfwMakeContextCurrent(window);
         GLFW.glfwShowWindow(window);
@@ -103,8 +112,29 @@ public class Window {
         }
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        // ✅ Nastavení perspektivy při spuštění
+        updateProjectionMatrix();
     }
+    private void updateProjectionMatrix() {
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glLoadIdentity();
 
+        float aspectRatio = (float) width / height;
+        Matrix4f projectionMatrix = new Matrix4f().perspective(
+                (float) Math.toRadians(70.0f),
+                aspectRatio,
+                0.1f,
+                100.0f
+        );
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer fb = stack.mallocFloat(16);
+            projectionMatrix.get(fb);
+            GL11.glLoadMatrixf(fb);
+        }
+
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+    }
     private void loop() {
 
         long lastTime = System.nanoTime();
