@@ -9,6 +9,7 @@ import input.InputHandler;
 
 import maze.Maze3D;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -30,8 +31,8 @@ public class Window {
     private InputHandler inputHandler;
     private Renderer renderer;
 
-
     private Menu menu;
+    private Maze3D maze;
 
     public Window(int width, int height, String title) {
         this.width = width;
@@ -46,6 +47,7 @@ public class Window {
     }
 
     private void init() {
+
         GLFWErrorCallback.createPrint(System.err).set();
 
         if (!GLFW.glfwInit()) {
@@ -61,11 +63,17 @@ public class Window {
         GLFW.glfwShowWindow(window);
         GL.createCapabilities();
 
+        camera = new Camera(1, 0, 2);  // ✅ Hráč začíná nad podlahou
+        System.out.println("Startovní pozice při spuštění: " + camera.getPosition());
+
+        menu = new Menu(window, camera, this);
+        renderer = new Renderer(camera);
+        maze = new Maze3D(60, 60, camera);
+
+        camera.setMaze(maze);   // Nastavíme maze do kamery
+        maze.setCamera(camera); // A kameru do maze
 
 
-        camera = new Camera(0, 0, 2);  // ✅ Hráč začíná nad podlahou
-        menu = new Menu(window, camera);
-        //Maze3D maze = new Maze3D(60, 60, camera);
         inputHandler = new InputHandler(window, camera, menu);
         renderer = new Renderer(camera);
 
@@ -75,7 +83,7 @@ public class Window {
         GL11.glEnable(GL11.GL_POLYGON_SMOOTH);  // ✅ Vyhlazení polygonů
         GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_NICEST);
 
-        // 🔹 NASTAVENÍ PERSPEKTIVY BEZ `GLU`
+        // 🔹 NASTAVENÍ PERSPEKTIVY BEZ GLU
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
 
@@ -125,6 +133,7 @@ public class Window {
 
             menu.render();
 
+
             inputHandler.processInput();
             camera.update();  // ✅ Aktualizace gravitace a skákání
 
@@ -141,6 +150,22 @@ public class Window {
             GLFW.glfwPollEvents();
         }
     }
+
+    public void restartGame() {
+        System.out.println("Restartuji hru...");
+
+        camera.setPosition(new org.joml.Vector3f(1.0f, 0.0f, 2.0f)); // ✅ Fixní startovní pozice
+        camera.setYaw(-90f);
+        camera.setPitch(0);
+
+        System.out.println("Pozice po restartu: " + camera.getPosition());
+
+        menu.setActive(false);
+        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+    }
+
+
+
 }
 
 

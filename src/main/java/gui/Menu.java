@@ -2,6 +2,7 @@ package gui;
 
 import camera.Camera;
 import graphics.TextRenderer;
+import main.Window;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.opengl.GL11.*;
@@ -19,13 +20,16 @@ public class Menu {
     private float savedYaw, savedPitch;
     private Camera camera; // Přidáme referenci na kameru
 
-    public Menu(long window, Camera camera) {
+    private Window gameWindow; // Přidej tuto proměnnou
+
+    public Menu(long window, Camera camera, Window gameWindow) {
         this.window = window;
         this.textRenderer = new TextRenderer();
         this.camera = camera;
+        this.gameWindow = gameWindow; // Ulož si referenci na Window
     }
 
-    public void toggle() {
+    /*public void toggle() {
         isActive = !isActive;
 
         if (isActive) {
@@ -40,6 +44,27 @@ public class Menu {
             camera.setPosition(savedPosition);
             camera.setYaw(savedYaw);
             camera.setPitch(savedPitch);
+
+            GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+        }
+    }*/
+    public void toggle() {
+        isActive = !isActive;
+
+        if (isActive) {
+            // ✅ ULOŽÍME AKTUÁLNÍ STAV KAMERY
+            savedPosition = new Vector3f(camera.getPosition());
+            savedYaw = camera.getYaw();
+            savedPitch = camera.getPitch();
+
+            GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+        } else {
+            // ✅ OBNOVÍME STAV KAMERY JEN POKUD HRA NEBYLA RESTARTOVÁNA
+            if (savedPosition != null) {
+                camera.setPosition(savedPosition);
+                camera.setYaw(savedYaw);
+                camera.setPitch(savedPitch);
+            }
 
             GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
         }
@@ -64,7 +89,8 @@ public class Menu {
         glLoadIdentity();
 
         drawButton(300, 250, 500, 300, "Continue", 1.0f, 1.0f, 0.0f);
-        drawButton(300, 350, 500, 400, "Quit game", 1.0f, 0.0f, 0.0f);
+        drawButton(300, 350, 500, 400, "Restart", 1.0f, 0.0f, 0.0f);
+        drawButton(300, 450, 500, 500, "Quit game", 1.0f, 0.0f, 0.0f);
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
@@ -96,13 +122,19 @@ public class Menu {
         if (isInsideButton(x, y, 300, 250, 500, 300)) {
             System.out.println("Pokračovat stisknuto");
             toggle();
-        } else if (isInsideButton(x, y, 300, 350, 500, 400)) {
+        } else if (isInsideButton(x, y, 300, 450, 500, 500)) {
             System.out.println("Ukončit hru stisknuto");
             GLFW.glfwSetWindowShouldClose(window, true);
+        } else if (isInsideButton(x, y, 300, 350, 500, 400)) {
+            gameWindow.restartGame();
         }
     }
 
     private boolean isInsideButton(double x, double y, float x1, float y1, float x2, float y2) {
         return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 }

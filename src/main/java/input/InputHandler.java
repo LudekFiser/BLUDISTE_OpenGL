@@ -20,9 +20,9 @@ public class InputHandler {
     private boolean escPressed = false;
     private Menu menu;
 
-
     private boolean flyTogglePressed = false;  // ✅ Ochrana proti opakovanému stisku F
 
+    private Maze3D maze;
 
     public InputHandler(long window, Camera camera, Menu menu) {
         this.window = window;
@@ -58,11 +58,11 @@ public class InputHandler {
         Vector3f forward = new Vector3f(sideways).cross(new Vector3f(0, 1, 0)).normalize();
 
         // ✅ Výchozí rychlost
-        float movementSpeed = 0.1f;
+        float movementSpeed = 0.05f;
 
         // ✅ Pokud je `SHIFT` stisknutý, rychlost se zvýší
         if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS) {
-            movementSpeed = 0.2f;  // ✅ Sprint
+            movementSpeed = 0.1f;  // ✅ Sprint
         }
 
         // 🔹 SPRÁVNÉ přiřazení WASD pohybu:
@@ -139,9 +139,6 @@ public class InputHandler {
                 menu.handleClick(xpos[0], ypos[0]);
             }
         });
-
-
-
     }
 
 }

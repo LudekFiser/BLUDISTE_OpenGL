@@ -5,6 +5,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import transforms.Vec3D;
 
+
 public class Camera {
     private Vector3f position;
     private float pitch, yaw;
@@ -17,6 +18,9 @@ public class Camera {
     private static final float GRAVITY = -0.05f;  // ✅ Simulace gravitace
     private static final float JUMP_FORCE = 0.7f;  // ✅ Síla skoku
     private static final float GROUND_LEVEL = 0.0f;  // ✅ Výška podlahy
+
+    private Maze3D maze;
+
 
 
     public Camera(float x, float y, float z) {
@@ -48,6 +52,39 @@ public class Camera {
     }
 
 
+    public boolean canMoveTo(float newX, float newZ, Maze3D maze) {
+        if (this.maze == null) {
+            System.err.println("ERROR: Maze is NULL in canMoveTo()!");
+            return false;  // ⚠️ Vrátíme false, aby hra nespadla
+        }
+        float playerSize = 0.2f; // 🔥 Zvýšíme hitbox hráče (dříve 0.005f)
+
+        int cellX1 = (int) ((newX - playerSize - maze.getMazeOffsetX()) / maze.getCellSize());
+        int cellX2 = (int) ((newX + playerSize - maze.getMazeOffsetX()) / maze.getCellSize());
+
+        int cellZ1 = (int) ((newZ - playerSize - maze.getMazeOffsetZ()) / maze.getCellSize());
+        int cellZ2 = (int) ((newZ + playerSize - maze.getMazeOffsetZ()) / maze.getCellSize());
+
+        // ✅ Ověříme všechny čtyři body (levý dolní, pravý dolní, levý horní, pravý horní)
+        return maze.getCell(cellZ1, cellX1) == 0 &&
+                maze.getCell(cellZ1, cellX2) == 0 &&
+                maze.getCell(cellZ2, cellX1) == 0 &&
+                maze.getCell(cellZ2, cellX2) == 0;
+    }
+
+
+    private boolean collidesWithCube(float px, float py, float pz) {
+        float size = 1.0f; // Velikost krychle
+        float x = 0f, y = -0.5f, z = -3f; // Pozice krychle
+        float buffer = 0.2f; // 🔥 Extra prostor kolem krychle
+
+        return (px > x - buffer && px < x + size + buffer &&
+                py > y - buffer && py < y + size + buffer &&
+                pz > z - size - buffer && pz < z + buffer);
+    }
+
+
+
     public void jump() {
         if (!isJumping) {  // ✅ Skáče jen pokud je na zemi
             velocityY = JUMP_FORCE;
@@ -63,6 +100,7 @@ public class Camera {
     }
 
     public void update() {
+        System.out.println("Update kamera: " + position);
         if (isJumping) {
             velocityY += GRAVITY;  // ✅ Simulace gravitace
             position.y += velocityY;
@@ -107,6 +145,8 @@ public class Camera {
                 pz + playerSize > objZ - height / 2 && pz - playerSize < objZ + height / 2);
     }
 
+
+
     public Vector3f getPosition() {
         return position;
     }
@@ -125,5 +165,9 @@ public class Camera {
 
     public void setYaw(float yaw) {
         this.yaw = yaw;
+    }
+
+    public void setMaze(Maze3D maze) {
+        this.maze = maze;
     }
 }
