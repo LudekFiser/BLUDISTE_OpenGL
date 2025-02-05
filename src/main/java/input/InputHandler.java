@@ -4,18 +4,24 @@ import camera.Camera;
 
 import gui.Menu;
 import main.Window;
+
+import maze.Maze3D;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
+import transforms.Vec3D;
 
 public class InputHandler {
     private long window;
     private Camera camera;
-    private float speed = 0.1f;
+
     private float sensitivity = 0.1f;
     private double lastMouseX = 400, lastMouseY = 300;
 
     private boolean escPressed = false;
     private Menu menu;
+
+
+    private boolean flyTogglePressed = false;  // ✅ Ochrana proti opakovanému stisku F
 
 
     public InputHandler(long window, Camera camera, Menu menu) {
@@ -37,6 +43,7 @@ public class InputHandler {
     }
 
     public void processInput() {
+        float dx = 0, dz = 0;
         if (camera == null) return;  // ✅ Ochrana před NullPointerException
         Vector3f movement = new Vector3f();
 
@@ -70,6 +77,25 @@ public class InputHandler {
         }
         if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) {
             movement.sub(sideways);
+        }
+        // 🔹 Přepínání režimu létání (F)
+        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F) == GLFW.GLFW_PRESS && !flyTogglePressed) {
+            camera.toggleFlyMode();
+            System.out.println("LETANI");
+            flyTogglePressed = true;  // ✅ Zabrání opakovanému přepínání při držení klávesy
+        }
+        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F) == GLFW.GLFW_RELEASE) {
+            flyTogglePressed = false;
+        }
+
+        // 🔹 Létání nahoru/dolů (E/Q) – pouze pokud je aktivní létání
+        if (camera.isFlying()) {
+            if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_E) == GLFW.GLFW_PRESS) {
+                movement.add(new Vector3f(0, movementSpeed, 0));  // 🔼 Nahoru
+            }
+            if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_Q) == GLFW.GLFW_PRESS) {
+                movement.sub(new Vector3f(0, movementSpeed, 0));  // 🔽 Dolů
+            }
         }
 
         // ✅ Pokud je pohyb, normalizujeme a aplikujeme rychlost (včetně sprintu)

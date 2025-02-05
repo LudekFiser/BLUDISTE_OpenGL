@@ -5,14 +5,22 @@ import graphics.Renderer;
 
 import gui.Menu;
 import input.InputHandler;
+
+
+import maze.Maze3D;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
+import transforms.Vec3D;
 
 import java.nio.FloatBuffer;
+
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengles.GLES20.glEnable;
 
 public class Window {
     private long window;
@@ -57,8 +65,9 @@ public class Window {
 
         camera = new Camera(0, 0, 2);  // ✅ Hráč začíná nad podlahou
         menu = new Menu(window, camera);
+        //Maze3D maze = new Maze3D(60, 60, camera);
         inputHandler = new InputHandler(window, camera, menu);
-        renderer = new Renderer();
+        renderer = new Renderer(camera);
 
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);  // ✅ Aktivujeme správné vykreslování hloubky
@@ -72,7 +81,11 @@ public class Window {
 
         // Vytvoření projekční matice
         float aspectRatio = (float) width / height;
-        Matrix4f projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(70.0f), aspectRatio, 0.1f, 100.0f);
+        Matrix4f projectionMatrix = new Matrix4f().perspective(
+                (float) Math.toRadians(70.0f),
+                aspectRatio,
+                0.1f,
+                100.0f);
 
         // Nahrání matice do OpenGL
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -85,6 +98,7 @@ public class Window {
     }
 
     private void loop() {
+
         long lastTime = System.nanoTime();
         int frames = 0;
         long fpsCounter = System.currentTimeMillis();
@@ -128,5 +142,8 @@ public class Window {
         }
     }
 }
+
+
+
 
 

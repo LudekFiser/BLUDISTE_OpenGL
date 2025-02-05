@@ -1,7 +1,9 @@
 package camera;
 
+import maze.Maze3D;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import transforms.Vec3D;
 
 public class Camera {
     private Vector3f position;
@@ -9,6 +11,8 @@ public class Camera {
 
     private float velocityY = 0.0f;  // ✅ Rychlost ve směru Y (pro gravitaci a skákání)
     private boolean isJumping = false;
+
+    private boolean isFlying = false;  // ✅ Režim létání
 
     private static final float GRAVITY = -0.05f;  // ✅ Simulace gravitace
     private static final float JUMP_FORCE = 0.7f;  // ✅ Síla skoku
@@ -38,9 +42,10 @@ public class Camera {
         if (!collidesWith(position.x, newPosition.z, objX, objZ, width, height, playerSize)) {
             position.z = newPosition.z;
         }
+
+        // ✅ Umožníme volný pohyb nahoru/dolů (létání ignoruje kolize)
+        position.y += delta.y;
     }
-
-
 
 
     public void jump() {
@@ -48,6 +53,13 @@ public class Camera {
             velocityY = JUMP_FORCE;
             isJumping = true;
         }
+    }
+    public void toggleFlyMode() {
+        isFlying = !isFlying;
+    }
+
+    public boolean isFlying() {
+        return isFlying;
     }
 
     public void update() {

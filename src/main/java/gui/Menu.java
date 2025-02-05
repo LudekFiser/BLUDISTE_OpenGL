@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL30;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -50,6 +51,9 @@ public class Menu {
 
     public void render() {
         if (!isActive) return;
+
+        // ✅ DEAKTIVACE SHADERU (pouze fixní vykreslování)
+        GL30.glUseProgram(0);
 
         glDisable(GL_DEPTH_TEST);
         glMatrixMode(GL_PROJECTION);

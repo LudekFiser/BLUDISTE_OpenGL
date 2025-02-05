@@ -1,26 +1,46 @@
 package graphics;
 
+import camera.Camera;
+import maze.Maze3D;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryUtil;
+import transforms.Vec3D;
 
+import java.nio.FloatBuffer;
 import java.util.Random;
+
+import static org.lwjgl.opengles.GLES20.GL_TRIANGLES;
+import static org.lwjgl.opengles.GLES32.GL_QUADS;
+import static org.lwjglx.debug.GLmetadata.glBegin;
+import static org.lwjglx.debug.opengl.GL11.glEnd;
+import static org.lwjglx.debug.opengl.GL11.glVertex3f;
 
 public class Renderer {
     private int floorTextureID;
-    private int normalMapID;
-    private int roughnessMapID;
+    private Camera camera;
 
-    public Renderer() {
+    private int vao, vbo;
+    private Maze3D maze;
+    public Renderer(Camera camera) {
         floorTextureID = TextureLoader.loadTexture("assets/textures/floor/PavingStones089_4K-PNG_Color.png");
-        //normalMapID = TextureLoader.loadTexture("assets/textures/floor/PavingStones089_4K-PNG_NormalGL.png");
-        //roughnessMapID = TextureLoader.loadTexture("assets/textures/floor/PavingStones089_4K-PNG_Roughness.png");
+        this.camera = camera;
+        maze = new Maze3D(60, 60, camera);
+        vao = GL30.glGenVertexArrays();
+        vbo = GL30.glGenBuffers();
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
+
+
     }
 
     public void render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
 
+        maze.render(this);  // ✅ Tímto zavoláš `drawWall()` pro každou stěnu
         drawFloor();
         drawCube();
     }
@@ -68,104 +88,42 @@ public class Renderer {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
     }
 
+    public void drawTriangle(Vec3D v1, Vec3D v2, Vec3D v3) {
+        float[] vertices = {
+                (float) v1.getX(), (float) v1.getY(), (float) v1.getZ(),
+                (float) v2.getX(), (float) v2.getY(), (float) v2.getZ(),
+                (float) v3.getX(), (float) v3.getY(), (float) v3.getZ()
+        };
+
+        // Vytvoříme buffer
+        FloatBuffer vertexBuffer = MemoryUtil.memAllocFloat(vertices.length);
+        vertexBuffer.put(vertices).flip();
+
+        // BIND VAO
+        GL30.glBindVertexArray(vao);
+
+        // BIND VBO
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexBuffer, GL30.GL_STATIC_DRAW);
+
+        // ENABLE VERTEX ATTRIBUTES
+        GL30.glEnableVertexAttribArray(0);
+        GL30.glVertexAttribPointer(0, 3, GL30.GL_FLOAT, false, 0, 0);
+
+        // DRAW TRIANGLE
+        GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 3);
+
+        // CLEANUP
+        GL30.glDisableVertexAttribArray(0);
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0);
+        GL30.glBindVertexArray(0);
+
+        MemoryUtil.memFree(vertexBuffer);
+    }
+
+    public void drawQuad(Vec3D v1, Vec3D v2, Vec3D v3, Vec3D v4) {
+        drawTriangle(v1, v2, v3);
+        drawTriangle(v1, v3, v4);
+    }
+
 }
-
-
-
-
-/*
-public class Renderer {
-    private int floorTextureID;
-    private static final int GRID_SIZE = 10;  // Velikost mřížky podlahy
-    private static final float TILE_SIZE = 10.0f;  // Velikost dlaždice
-    private static final float UV_SCALE = 1.0f; // Měřítko UV
-    private float[][] randomRotations;
-    private float[][] randomOffsetsU;
-    private float[][] randomOffsetsV;
-
-    public void render() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-
-
-        drawFloor();
-        drawCube();
-    }
-
-    public Renderer() {
-        floorTextureID = TextureLoader.loadTexture("assets/textures/floor/PavingStones089_4K-PNG_Color.png");
-
-        // 🔥 Předgenerování random hodnot (fixní pro celou hru)
-        randomRotations = new float[GRID_SIZE * 2][GRID_SIZE * 2];
-        randomOffsetsU = new float[GRID_SIZE * 2][GRID_SIZE * 2];
-        randomOffsetsV = new float[GRID_SIZE * 2][GRID_SIZE * 2];
-
-        Random rand = new Random();
-        for (int x = 0; x < GRID_SIZE * 2; x++) {
-            for (int z = 0; z < GRID_SIZE * 2; z++) {
-                randomRotations[x][z] = rand.nextInt(4) * 90.0f;  // 0°, 90°, 180°, 270°
-                randomOffsetsU[x][z] = rand.nextFloat() * 0.5f;
-                randomOffsetsV[x][z] = rand.nextFloat() * 0.5f;
-            }
-        }
-    }
-
-    private void drawCube() {
-        GL11.glBegin(GL11.GL_QUADS);
-
-        GL11.glColor3f(1.0f, 0.0f, 0.0f);
-        GL11.glVertex3f(-0.5f, -0.5f, -1.0f);
-        GL11.glVertex3f(0.5f, -0.5f, -1.0f);
-        GL11.glVertex3f(0.5f, 0.5f, -1.0f);
-        GL11.glVertex3f(-0.5f, 0.5f, -1.0f);
-
-        GL11.glEnd();
-    }
-
-
-    private void drawFloor() {
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, floorTextureID);
-
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
-
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glColor3f(1.0f, 1.0f, 1.0f);
-
-        for (int x = -GRID_SIZE; x < GRID_SIZE; x++) {
-            for (int z = -GRID_SIZE; z < GRID_SIZE; z++) {
-                int gridX = x + GRID_SIZE;
-                int gridZ = z + GRID_SIZE;
-
-                float randomRotation = randomRotations[gridX][gridZ];
-                float randomOffsetU = randomOffsetsU[gridX][gridZ];
-                float randomOffsetV = randomOffsetsV[gridX][gridZ];
-
-                float u1 = randomOffsetU, v1 = randomOffsetV;
-                float u2 = u1 + UV_SCALE, v2 = v1 + UV_SCALE;
-
-                // Pokud je rotace 90° nebo 270°, prohodíme UV souřadnice
-                if (randomRotation == 90.0f || randomRotation == 270.0f) {
-                    float temp = u1;
-                    u1 = v1;
-                    v1 = temp;
-
-                    temp = u2;
-                    u2 = v2;
-                    v2 = temp;
-                }
-
-                // Kreslení dlaždice s pevně předgenerovanou rotací a posunem
-                GL11.glTexCoord2f(u1, v1); GL11.glVertex3f(x * TILE_SIZE, -1.0f, z * TILE_SIZE);
-                GL11.glTexCoord2f(u2, v1); GL11.glVertex3f((x + 1) * TILE_SIZE, -1.0f, z * TILE_SIZE);
-                GL11.glTexCoord2f(u2, v2); GL11.glVertex3f((x + 1) * TILE_SIZE, -1.0f, (z + 1) * TILE_SIZE);
-                GL11.glTexCoord2f(u1, v2); GL11.glVertex3f(x * TILE_SIZE, -1.0f, (z + 1) * TILE_SIZE);
-            }
-        }
-
-        GL11.glEnd();
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-    }
-
-}*/
