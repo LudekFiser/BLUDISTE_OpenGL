@@ -73,7 +73,6 @@ public class Window {
         GL.createCapabilities();
 
         camera = new Camera(1, 0, 2);  // ✅ Hráč začíná nad podlahou
-        System.out.println("Startovní pozice při spuštění: " + camera.getPosition());
 
         menu = new Menu(window, camera, this);
         renderer = new Renderer(camera);

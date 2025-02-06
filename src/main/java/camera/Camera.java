@@ -100,7 +100,6 @@ public class Camera {
     }
 
     public void update() {
-        System.out.println("Update kamera: " + position);
         if (isJumping) {
             velocityY += GRAVITY;  // ✅ Simulace gravitace
             position.y += velocityY;

@@ -3,6 +3,8 @@ package graphics;
 import camera.Camera;
 import maze.Maze3D;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
@@ -136,12 +138,17 @@ public class Renderer {
 public class Renderer {
     private int floorTextureID;
     private Camera camera;
-
+    //private Shader fogShader;
     private int vao, vbo;
     private Maze3D maze;
+
+
     public Renderer(Camera camera) {
+
+
         floorTextureID = TextureLoader.loadTexture("assets/textures/floor/PavingStones089_4K-PNG_Color.png");
         this.camera = camera;
+        setupFog(); // ✅ Aktivujeme mlhu při spuštění
         //maze = new Maze3D(60, 60, camera);
         maze = new Maze3D(90, 90, camera);
         vao = GL30.glGenVertexArrays();
@@ -149,14 +156,36 @@ public class Renderer {
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
 
+        // 🔹 Inicializace mlžného shaderu
+        /*fogShader = new Shader("assets/shaders/fog/fog.vert", "assets/shaders/fog/fog.frag");
+        fogShader.createUniform("cameraPos");
+        fogShader.createUniform("fogColor");
+        fogShader.createUniform("fogDensity");
+        System.out.println("Fog Shader: Nastavuji cameraPos = " + camera.getPosition());
+        fogShader.setUniform("cameraPos", camera.getPosition());*/
+
 
     }
+    private void setupFog() {
+        GL11.glEnable(GL11.GL_FOG); // Aktivuje mlhu
+
+        FloatBuffer fogColor = BufferUtils.createFloatBuffer(4);
+        fogColor.put(new float[]{0.5f, 0.5f, 0.5f, 1.0f}).flip(); // Barva mlhy (šedá)
+        GL11.glFogfv(GL11.GL_FOG_COLOR, fogColor);
+
+        GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_EXP2); // Použij EXP2 model pro lepší vizuální efekt
+        GL11.glFogf(GL11.GL_FOG_DENSITY, 0.3f); // Nastav hustotu mlhy
+
+        GL11.glHint(GL11.GL_FOG_HINT, GL11.GL_NICEST); // Nejlepší kvalita mlhy
+    }
+
 
     public void render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
 
         maze.render(this);  // ✅ Tímto zavoláš `drawWall()` pro každou stěnu
+
         drawFloor();
         drawCube();
     }
